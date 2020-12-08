@@ -51,3 +51,19 @@ def set_time(message):
                 json.dump(users_data, js)
 
             bot.send_message(message.chat.id, "Час успішно збережено")
+
+            @bot.message_handler(commands=["set_role"])
+            def set_role(message):
+                if str(message.chat.id) in users_data:
+                    bot.send_message(message.chat.id, "Напишіть свою роль в компанії")
+                    bot.register_next_step_handler(message, role_setting)
+                else:
+                    bot.send_message(message.chat.id, "Вас немає у списку користувачів!")
+
+            def role_setting(message):
+                users_data[f"{message.chat.id}"]["role"] = message.text
+
+                with open("users.json", "w", encoding="utf-8") as js:
+                    json.dump(users_data, js)
+
+                bot.send_message(message.chat.id, "Роль успішно збережено")
