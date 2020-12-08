@@ -81,3 +81,25 @@ def set_time(message):
                                                           "\nЩоб ввімкнути сповіщення напишіть \n/start, /set_time, /set_role")
                     else:
                         bot.send_message(message.chat.id, "Вас немає у списку користувачів!")
+
+def notify():
+    while True:
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        to_delete = []
+
+        for user in users_data:
+            if current_time == users_data[user]["time"]:
+                try:
+                    bot.send_message(int(user), f"Пора працювати!"
+                                                f"\nВаша роль в компанії: {users_data[user]['role']}")
+                except telebot.apihelper.ApiTelegramException:
+                    to_delete.append(user)
+
+        for user in to_delete:
+            users_data.pop(user)
+
+            with open('users.json', 'w', encoding="utf-8") as js:
+                json.dump(users_data, js)
+
+        time.sleep(1)
