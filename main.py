@@ -103,3 +103,13 @@ def notify():
                 json.dump(users_data, js)
 
         time.sleep(1)
+
+thr = threading.Thread(target=notify)
+thr.start()
+
+while True:
+    try:
+        bot.polling(none_stop=True)
+    except Exception as err:
+        logging.error(err)
+        print("No internet connection.")
