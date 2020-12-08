@@ -28,4 +28,65 @@ def send_welcome(message):
     with open('users.json', 'w', encoding="utf-8") as js:
         json.dump(users_data, js)
 
+        @bot.message_handler(commands=["set_role"])
+        def set_role(message):
+            if str(message.chat.id) in users_data:
+                bot.send_message(message.chat.id, "Напишіть свою роль в компанії")
+                bot.register_next_step_handler(message, role_setting)
+            else:
+                bot.send_message(message.chat.id, "Вас немає у списку користувачів!")
+
+        def role_setting(message):
+            users_data[f"{message.chat.id}"]["role"] = message.text
+
+            with open("users.json", "w", encoding="utf-8") as js:
+                json.dump(users_data, js)
+
+            bot.send_message(message.chat.id, "Роль успішно збережено")
+
+        @bot.message_handler(commands=["leave"])
+        def leave(message):
+            if str(message.chat.id) in users_data:
+                users_data.pop(str(message.chat.id))
+
+                with open('users.json', 'w', encoding="utf-8") as js:
+                    json.dump(users_data, js)
+
+                bot.send_message(message.chat.id, "Ви успішно вимкнули сповіщення. "
+                                                  "\nЩоб ввімкнути сповіщення напишіть \n/start, /set_time, /set_role")
+            else:
+                bot.send_message(message.chat.id, "Вас немає у списку користувачів!")
+
+        def notify():
+            while True:
+                now = datetime.now()
+                current_time = now.strftime("%H:%M:%S")
+                to_delete = []
+
+                for user in users_data:
+                    if current_time == users_data[user]["time"]:
+                        try:
+                            bot.send_message(int(user), f"Пора працювати!"
+                                                        f"\nВаша роль в компанії: {users_data[user]['role']}")
+                        except telebot.apihelper.ApiTelegramException:
+                            to_delete.append(user)
+
+                for user in to_delete:
+                    users_data.pop(user)
+
+                    with open('users.json', 'w', encoding="utf-8") as js:
+                        json.dump(users_data, js)
+
+                time.sleep(1)
+
+        thr = threading.Thread(target=notify)
+        thr.start()
+
+        while True:
+            try:
+                bot.polling(none_stop=True)
+            except Exception as err:
+                logging.error(err)
+                print("No internet connection.")
+
 
