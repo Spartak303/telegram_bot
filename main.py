@@ -67,3 +67,17 @@ def set_time(message):
                     json.dump(users_data, js)
 
                 bot.send_message(message.chat.id, "Роль успішно збережено")
+
+
+                @bot.message_handler(commands=["leave"])
+                def leave(message):
+                    if str(message.chat.id) in users_data:
+                        users_data.pop(str(message.chat.id))
+
+                        with open('users.json', 'w', encoding="utf-8") as js:
+                            json.dump(users_data, js)
+
+                        bot.send_message(message.chat.id, "Ви успішно вимкнули сповіщення. "
+                                                          "\nЩоб ввімкнути сповіщення напишіть \n/start, /set_time, /set_role")
+                    else:
+                        bot.send_message(message.chat.id, "Вас немає у списку користувачів!")
